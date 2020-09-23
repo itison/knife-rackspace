@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.files         = %w{LICENSE} + Dir.glob("lib/**/*")
   s.test_files    = `git ls-files -- spec/*`.split("\n")
   s.add_dependency "knife-windows"
-  s.add_dependency "fog-rackspace", ">= 0.1"
+  s.add_dependency "fog-rackspace", ">= 0.2"
   s.add_dependency "chef", ">= 13.0"
   s.require_paths = ["lib"]
 end
