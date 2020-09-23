@@ -18,7 +18,7 @@
 #
 
 require_relative "rackspace_base"
-require "chef/knife/winrm_base"
+require "chef/knife/winrm"
 require "chef/knife"
 
 class Chef
