@@ -448,6 +448,7 @@ class Chef
         else
           server.save(networks: server_create_options[:networks])
         end
+        root_password = server.password
 
         rackconnect_wait = locate_config_value(:rackconnect_wait)
         rackspace_servicelevel_wait = locate_config_value(:rackspace_servicelevel_wait)
@@ -509,6 +510,8 @@ class Chef
           end
         end
 
+        server.password = root_password
+
         if server_create_options[:networks] && locate_config_value(:rackspace_networks)
           msg_pair("Networks", locate_config_value(:rackspace_networks).sort.join(", "))
         end
@@ -548,7 +551,7 @@ class Chef
         msg_pair("Public DNS Name", public_dns_name(server))
         msg_pair("Public IP Address", ip_address(server, "public"))
         msg_pair("Private IP Address", ip_address(server, "private"))
-        msg_pair("Password", server.password)
+        msg_pair("Password", root_password)
         msg_pair("Environment", config[:environment] || "_default")
         msg_pair("Run List", config[:run_list].join(", "))
       end
@@ -590,11 +593,12 @@ class Chef
       def bootstrap_for_node(server, bootstrap_ip_address)
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [bootstrap_ip_address]
-        bootstrap.config[:ssh_user] = locate_config_value(:ssh_user) || "root"
-        bootstrap.config[:ssh_password] = server.password
-        bootstrap.config[:ssh_port] = locate_config_value(:ssh_port)
+        bootstrap.config[:connection_user] = locate_config_value(:ssh_user) || "root"
+        bootstrap.config[:connection_password] = server.password
+        bootstrap.config[:connection_port] = locate_config_value(:ssh_port)
         bootstrap.config[:identity_file] = locate_config_value(:identity_file)
         bootstrap.config[:host_key_verify] = locate_config_value(:host_key_verify)
+        bootstrap.config[:bootstrap_product] = locate_config_value(:bootstrap_product) || "chef"
         bootstrap.config[:bootstrap_vault_file] = locate_config_value(:bootstrap_vault_file) if locate_config_value(:bootstrap_vault_file)
         bootstrap.config[:bootstrap_vault_json] = locate_config_value(:bootstrap_vault_json) if locate_config_value(:bootstrap_vault_json)
         bootstrap.config[:bootstrap_vault_item] = locate_config_value(:bootstrap_vault_item) if locate_config_value(:bootstrap_vault_item)
@@ -612,6 +616,7 @@ class Chef
           bootstrap.config[:chef_node_name] = config[:chef_node_name] || server.name
         end
         bootstrap.config[:prerelease] = locate_config_value(:prerelease)
+        bootstrap.config[:channel] = locate_config_value(:channel) || "stable"
         bootstrap.config[:bootstrap_version] = locate_config_value(:bootstrap_version)
         bootstrap.config[:bootstrap_template] = locate_config_value(:bootstrap_template)
         bootstrap.config[:first_boot_attributes] = locate_config_value(:first_boot_attributes)
@@ -633,7 +638,7 @@ class Chef
         bootstrap.config[:winrm_password] = locate_config_value(:winrm_password) || server.password
         bootstrap.config[:winrm_transport] = locate_config_value(:winrm_transport)
         bootstrap.config[:winrm_port] = locate_config_value(:winrm_port)
-        bootstrap.config[:distro] = locate_config_value(:distro) || "windows-chef-client-msi"
+        bootstrap.config[:bootstrap_product] = locate_config_value(:bootstrap_product) || "windows-chef-client-msi"
         bootstrap_common_params(bootstrap, server)
       end
 
